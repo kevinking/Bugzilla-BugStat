@@ -12,7 +12,7 @@
 #
 # The Original Code is the BugStats Bugzilla Extension.
 #
-# The Initial Developer of the Original Code is YOUR NAME
+# The Initial Developer of the Original Code is Wenjin Wu
 # Portions created by the Initial Developer are Copyright (C) 2010 the
 # Initial Developer. All Rights Reserved.
 #
@@ -34,7 +34,7 @@ sub install_update_db {
 
 }
 
-#########
+#########    $sth->finish();
 # Pages #
 #########
 
@@ -56,109 +56,46 @@ sub _page_user {
     my $who_id = $input->{user_id} || $user->id;
     my $who = Bugzilla::User->check({ id => $who_id });
 
-    my ($id, @reported_bug_id, @assigned_bug_id, @commented_bug_id, @voted_bug_id, @cc_bug_id, @qa_bug_id, @patch_bug_id);
+    # 
+    my (@sql_statements, %all_bug_ids,@all_bug_cnts, $id, $sql_state);
+    my @types= qw( #bugs_reported #bugs_assigned #comment #voting #cc #qa #patch );
 
-    # bug reporter
-    my $sth = $dbh->prepare('SELECT bugs.bug_id 
-                             FROM  bugs  WHERE bugs.reporter = ?');
-    $sth->execute($who->id);
-    while(($id) = $sth->fetchrow_array())
-    {
-        push (@reported_bug_id, $id);
-    }
-#   sort{$a <=> $b}@reported_bug_id;
-    $sth->finish();
+    $sql_statements[0] = "SELECT bugs.bug_id FROM  bugs  WHERE bugs.reporter = ?";
+    $sql_statements[1] = "SELECT bugs.bug_id FROM  bugs  WHERE bugs.assigned_to = ?";
+    $sql_statements[2] = "SELECT DISTINCT longdescs.bug_id FROM longdescs  WHERE longdescs.who = ?";
+    $sql_statements[3] = "SELECT votes.bug_id FROM votes  WHERE votes.who = ?";
+    $sql_statements[4] = "SELECT cc.bug_id FROM  cc WHERE cc.who = ?";
+    $sql_statements[5] = "SELECT bugs.bug_id FROM bugs WHERE bugs.qa_contact = ?";
+    $sql_statements[6] = "SELECT attachments.bug_id FROM attachments WHERE attachments.submitter_id = ? AND attachments.ispatch = 1";
     
-    # bug assigned to
-    $sth = $dbh->prepare('SELECT bugs.bug_id 
-                          FROM  bugs  WHERE bugs.assigned_to = ?');
-    $sth->execute($who->id);
-    while(($id) = $sth->fetchrow_array())
-    {
-        push (@assigned_bug_id, $id);
-    }
-#    sort{$a <=> $b}@assigned_bug_id;
-#    my $tmp = join(',',@assigned_bug_id);
-#    warn "id list: $tmp";
-#    my $size = @assigned_bug_id;
-#    warn "size: $size";
-
-    $sth->finish();
     
-    # comments
-    $sth = $dbh->prepare('SELECT DISTINCT longdescs.bug_id
-                          FROM longdescs
-                          WHERE longdescs.who = ? ');
-    $sth->execute($who->id);
-    while(($id) = $sth->fetchrow_array())
-    {
-        push (@commented_bug_id, $id);
-    }
-    $sth->finish();
+    for (my $index = 0; $index < @sql_statements; $index++){
+        my $sth = $dbh->prepare($sql_statements[$index]);
+        $sth->execute($who->id);
+        my @bug_ids;
+        while(($id) = $sth->fetchrow_array())
+        {
+            push (@bug_ids, $id);
+        }
+        $all_bug_ids{$types[$index]} = [@bug_ids];
     
-    # voting
-    $sth = $dbh->prepare('SELECT votes.bug_id 
-                          FROM votes 
-                          WHERE votes.who = ?');
-    $sth->execute($who->id);
-    while (($id) = $sth->fetchrow_array())
-    {
-        push (@voted_bug_id, $id);
+        my $cnt = @bug_ids;
+        push (@all_bug_cnts, $cnt);
+        $sth->finish();
+     
+   warn $types[$index], " cnt: ",$cnt, "\n";
     }
-#   sort{$a <=> $b}@voted_bug_id;
-    $sth->finish();
-
-    # CC List
-    $sth = $dbh->prepare('SELECT cc.bug_id
-                          FROM  cc
-                          WHERE cc.who = ?');
-    $sth->execute($who->id);
-    while (($id) = $sth->fetchrow_array())
-    {
-        push (@cc_bug_id, $id);
-    }
-    $sth->finish();
-
-    # QA Field
-    $sth = $dbh->prepare('SELECT bugs.bug_id
-                          FROM bugs
-                          WHERE bugs.qa_contact = ?');
-    $sth->execute($who->id);
-    while (($id) = $sth->fetchrow_array())
-    {
-        push(@qa_bug_id, $id);
-    }
-
-    # bug Patch
-    $sth = $dbh->prepare('SELECT attachments.bug_id
-                          FROM attachments
-                          WHERE attachments.submitter_id = ? AND attachments.ispatch = 1');
-    $sth->execute($who->id);
-    while (($id) = $sth->fetchrow_array())
-    {
-        push(@patch_bug_id, $id);
+    my $type;
+    for $type( keys %all_bug_ids) {
+        warn "$type: @{$all_bug_ids{$type}} \n";
     }
 
     # Calculate Point for userid
-    my $s1 = @reported_bug_id;
-    my $s2 = @assigned_bug_id;
-    my $s3 = @commented_bug_id;
-    my $s4 = @voted_bug_id;
-    my $s5 = @cc_bug_id;
-    my $s6 = @qa_bug_id;
-    my $s7 = @patch_bug_id;
+    my $point = log($all_bug_cnts[0] + 1) + log($all_bug_cnts[1]+ 1)*2 + log($all_bug_cnts[2])/log(10) + log($all_bug_cnts[3]+ 1) + log($all_bug_cnts[4] + 1) + 3*log($all_bug_cnts[6] + 1);
 
-    my $point = log($s3)/log(10) + log($s1 + 1) + log($s2 + 1)*2 + log($4 + 1) + log($5 + 1) + 3*log($s7 + 1);
-    $vars->{'all_reported_bug_id'}  = \@reported_bug_id;
-    $vars->{'all_assigned_bug_id'}  = \@assigned_bug_id;
-    $vars->{'all_commented_bug_id'} = \@commented_bug_id;
-    $vars->{'all_voted_bug_id'}     = \@voted_bug_id;
-    $vars->{'all_cc_bug_id'}        = \@cc_bug_id;
-    $vars->{'all_qa_bug_id'}        = \@qa_bug_id;
-    $vars->{'all_patch_bug_id'}     = \@patch_bug_id;
-    
+    $vars->{'all_bugs'} = \%all_bug_ids;
     $vars->{'point'} = $point;
     $vars->{'user'} = $who;
-    $vars->{'types'} = ['#bugs_reported', '#bugs_assigned', '#comment', '#voting', '#cc', '#qa','#patch','point'];
+    #$vars->{'types'} = ['#bugs_reported', '#bugs_assigned', '#comment', '#voting', '#cc', '#qa','#patch'];
 }
 __PACKAGE__->NAME;

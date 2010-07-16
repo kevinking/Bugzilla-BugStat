@@ -39,89 +39,20 @@
     <th>Type</th>
     <th>Number#</th>
   </tr>
-    <tr>
-      <td>
-       [% types.0 %]
-        </a>
-      </td>
-      <td align="right">
-      <a href="buglist.cgi?bug_id=[% all_reported_bug_id.join(",") FILTER url_quote %]" >
-          [% all_reported_bug_id.size FILTER html %]
-        </a> 
-      </td>
-    </tr>
 
-   <tr>
+   [% FOREACH type IN all_bugs.keys.sort %]
+     <tr>
       <td>
-       [% types.1 %]
+       [% type %]
         </a>
       </td>
       <td align="right">
-      <a href="buglist.cgi?bug_id=[% all_assigned_bug_id.join(",") FILTER url_quote %]" >
-          [% all_assigned_bug_id.size FILTER html %]
+      <a href="buglist.cgi?bug_id=[% all_bugs.$type.join(",") FILTER url_quote %]" >
+          [% all_bugs.$type.size FILTER html %]
         </a> 
       </td>
     </tr>
-
-   <tr>
-      <td>
-       [% types.2 %]
-        </a>
-      </td>
-      <td align="right">
-      <a href="buglist.cgi?bug_id=[% all_commented_bug_id.join(",") FILTER url_quote %]" >
-          [% all_commented_bug_id.size FILTER html %]
-        </a> 
-      </td>
-    </tr>
-
-   <tr>
-      <td>
-       [% types.3 %]
-        </a>
-      </td>
-      <td align="right">
-      <a href="buglist.cgi?bug_id=[% all_voted_bug_id.join(",") FILTER url_quote %]" >
-          [% all_voted_bug_id.size FILTER html %]
-        </a> 
-      </td>
-    </tr>
-
-   <tr>
-      <td>
-       [% types.4 %]
-        </a>
-      </td>
-      <td align="right">
-      <a href="buglist.cgi?bug_id=[% all_cc_bug_id.join(",") FILTER url_quote %]" >
-          [% all_cc_bug_id.size FILTER html %]
-        </a> 
-      </td>
-    </tr>
-
-   <tr>
-      <td>
-       [% types.5 %]
-        </a>
-      </td>
-      <td align="right">
-      <a href="buglist.cgi?bug_id=[% all_qa_bug_id.join(",") FILTER url_quote %]" >
-          [% all_qa_bug_id.size FILTER html %]
-        </a> 
-      </td>
-    </tr>
-
-   <tr>
-      <td>
-       [% types.6 %]
-        </a>
-      </td>
-      <td align="right">
-      <a href="buglist.cgi?bug_id=[% all_patch_bug_id.join(",") FILTER url_quote %]" >
-          [% all_patch_bug_id.size FILTER html %]
-        </a> 
-      </td>
-    </tr>
+   [% END %]
 </table>
 
 <p>Total Point: [% point FILTER html %]</p>
