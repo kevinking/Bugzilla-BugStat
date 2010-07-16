@@ -82,12 +82,6 @@ sub _page_user {
         my $cnt = @bug_ids;
         push (@all_bug_cnts, $cnt);
         $sth->finish();
-     
-   warn $types[$index], " cnt: ",$cnt, "\n";
-    }
-    my $type;
-    for $type( keys %all_bug_ids) {
-        warn "$type: @{$all_bug_ids{$type}} \n";
     }
 
     # Calculate Point for userid
@@ -96,6 +90,5 @@ sub _page_user {
     $vars->{'all_bugs'} = \%all_bug_ids;
     $vars->{'point'} = $point;
     $vars->{'user'} = $who;
-    #$vars->{'types'} = ['#bugs_reported', '#bugs_assigned', '#comment', '#voting', '#cc', '#qa','#patch'];
 }
 __PACKAGE__->NAME;
