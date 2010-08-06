@@ -23,9 +23,25 @@
 [% PROCESS global/variables.none.tmpl %]
 [% INCLUDE global/header.html.tmpl title = "Stats" %]
 
-<p>[% terms.Bugzilla %] has a "Stats" feature.....
-   ....
-</p>
 
+   <p> BugStats is a Bugzilla Extension for gethering statistics about user's activity in Bugzilla. 
+       <li>These statistics measure how active a person was in Bugzilla </li>
+       <li>Help users determine 'who is this guy' when looking at bug reports and comments</li>
+   </p>
+   <p> Dashboard for this guy:
+	<li> what bugs he has reported</li>
+	<li> what bugs he has been assigned</li>
+	<li> what patches he has summitted</li>
+	<li> what comments he has had</li>
+	<li> what bugs he has voted</li>
+	<li> what bugs he has CC</li>
+   </p> 
+   
+  <p>
+   Currently, we use the following formula to calculate a point for this guy:  
+   <blockquote>
+   point = log(#bugs_reported + 1) + log(#bugs_assigned+ 1)  + 3*log(#patch + 1) + log(#comment)/log(10) + log(#voting+ 1)/log(10)+ log(#cc + 1)/log(10) 
+   </blockquote>
+ </p>
 
 [% INCLUDE global/footer.html.tmpl %]

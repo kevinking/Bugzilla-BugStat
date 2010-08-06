@@ -16,8 +16,8 @@
 # Portions created by the Initial Developer are Copyright (C) 2010 the
 # Initial Developer. All Rights Reserved.
 #
-# Contributor(s):
-# Wenjin Wu < kevin.wu86@gmail.com >
+# Contributor(s):  Wenjin Wu < kevin.wu86@gmail.com >
+
 package Bugzilla::Extension::BugStats;
 use strict;
 use base qw(Bugzilla::Extension);
@@ -26,7 +26,6 @@ use base qw(Bugzilla::Extension);
 use Bugzilla::Extension::BugStats::Util;
 
 our $VERSION = '0.01';
-#use constant NAME => 'BugStats';
 # See the documentation of Bugzilla::Hook ("perldoc Bugzilla::Hook" 
 # in the bugzilla directory) for a list of all available hooks.
 sub install_update_db {
@@ -34,7 +33,7 @@ sub install_update_db {
 
 }
 
-#########    $sth->finish();
+#########    
 # Pages #
 #########
 
@@ -54,10 +53,9 @@ sub _page_user {
     my $user = Bugzilla->user;
     my $input = Bugzilla->input_params;
     my $who_id = $input->{user_id} || $user->id;
-    my $who = Bugzilla::User->check({ id => $who_id });
+    my $who = Bugzilla::User->check({id => $who_id});
 
-    # 
-    my (@sql_statements, %all_bug_ids,@all_bug_cnts, $id, $sql_state);
+    my (@sql_statements, %all_bug_ids, @all_bug_cnts, $id, $sql_state);
     my @types= qw( #bugs_reported #bugs_assigned #comment #voting #cc #qa #patch );
 
     $sql_statements[0] = "SELECT bugs.bug_id FROM  bugs  WHERE bugs.reporter = ?";
@@ -68,13 +66,12 @@ sub _page_user {
     $sql_statements[5] = "SELECT bugs.bug_id FROM bugs WHERE bugs.qa_contact = ?";
     $sql_statements[6] = "SELECT attachments.bug_id FROM attachments WHERE attachments.submitter_id = ? AND attachments.ispatch = 1";
     
-    
     for (my $index = 0; $index < @sql_statements; $index++){
         my $sth = $dbh->prepare($sql_statements[$index]);
         $sth->execute($who->id);
+
         my @bug_ids;
-        while(($id) = $sth->fetchrow_array())
-        {
+        while(($id) = $sth->fetchrow_array()){
             push (@bug_ids, $id);
         }
         $all_bug_ids{$types[$index]} = [@bug_ids];
@@ -84,7 +81,7 @@ sub _page_user {
         $sth->finish();
     }
 
-    # Calculate Point for userid
+    # Calculate Point for 'userid'
     my $point = log($all_bug_cnts[0] + 1) + log($all_bug_cnts[1]+ 1)*2 + log($all_bug_cnts[2])/log(10) + log($all_bug_cnts[3]+ 1) + log($all_bug_cnts[4] + 1) + 3*log($all_bug_cnts[6] + 1);
 
     $vars->{'all_bugs'} = \%all_bug_ids;

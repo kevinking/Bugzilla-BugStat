@@ -17,7 +17,7 @@
 # Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   YOUR NAME <YOUR EMAIL ADDRESS>
+# Wenjin Wu <kevin.wu86@gmail.com>
 
 package Bugzilla::Extension::BugStats;
 use strict;
