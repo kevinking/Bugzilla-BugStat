@@ -1,4 +1,7 @@
- install:
+ Install:
 
-copy and paste the BugStats directory into the extension directory in your Bugzilla instance
+1. modified file 'template/en/default/global/user.html.tmpl'
+   add [% Hook.process("additional_user_data") %] to end of 'template/en/default/global/user.html.tmpl', and no newline at end of file. 
+
+2. copy and paste the BugStats directory into the extension directory in your Bugzilla instance
 
